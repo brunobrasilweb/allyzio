@@ -1,6 +1,6 @@
 {
   "name": "allyzio",
-  "displayName": "allyzio",
+  "displayName": "Allyzio",
   "description": "AI Copilot for VSCode",
   "version": "0.0.1",
   "engines": {
@@ -9,16 +9,52 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "allyzio.helloWorld",
-        "title": "Hello World"
+        "command": "allyzio.refactorCode",
+        "title": "Allyzio: Refactor Code"
       }
-    ]
-  },
+    ],
+    "keybindings": [
+      {
+        "command": "allyzio.refactorCode",
+        "key": "alt+shift+1",
+        "mac": "cmd+shift+1",
+        "when": "editorHasSelection"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "allyzio.refactorCode",
+          "when": "editorHasSelection",
+          "group": "allyzio@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Allyzio",
+      "properties": {
+        "allyzio.chatgpt.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key. https://beta.openai.com/account/api-keys",
+          "order": 1
+        },
+        "allyzio.prompt.refactorCode": {
+          "type": "string",
+          "default": "Improve the code below using best practices and clean code",
+          "description": "Prompt for Refactor Code",
+          "order": 1
+        }
+      }
+    }
+  },  
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
@@ -28,14 +64,17 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.92.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
+    "@types/vscode": "^1.92.0",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.11.0",
-    "eslint": "^8.57.0",
-    "typescript": "^5.4.5",
     "@vscode/test-cli": "^0.0.9",
-    "@vscode/test-electron": "^2.4.0"
+    "@vscode/test-electron": "^2.4.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "axios": "^1.7.3"
   }
 }
