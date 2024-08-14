@@ -1,71 +1,27 @@
 # allyzio README
 
-This is the README for your extension "allyzio". After writing up a brief description, we recommend including the following sections.
+Allyzio is your programming best friend, it will help you write better code using best programming practices, design patterns and using SOLID.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+To use it, it's very simple, just select the part of the code you want to improve and click the right mouse button on the "Allyzio: Refactor Code" option and Allyzio will improve that part of your code.
 
-For example if there is an image subfolder under your extension project workspace:
 
-\!\[feature X\]\(images/feature-x.png\)
+![\!\\[feature X\\]\(images/feature-x.png\)](https://ik.imagekit.io/prezaty/Anima%C3%A7%C3%A3o_pJqZuXENd.gif?updatedAt=1723635633686)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+To work correctly you need an OpenAI API KEY
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+To configure you need to enter the OpenAI API KEY and if you want to change the code refactoring prompt
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+![\!\\[feature X\\]\(images/feature-x.png\)](https://ik.imagekit.io/prezaty/Screenshot%202024-08-14%20084317_UTXRrEI75Z.png?updatedAt=1723635837273)
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial version with the option to refactor your code

@@ -43,8 +43,8 @@ function activate(context) {
             return;
         }
         try {
-            const apiKey = getConfig('allyzio.chatgpt.apiKey');
-            const promptRefactorCode = getConfig('allyzio.prompt.refactorCode');
+            const apiKey = getConfig('allyzio.chatgpt.apiKey') || '';
+            const promptRefactorCode = getConfig('allyzio.prompt.refactorCode') || '';
             const refactoredCode = await getRefactoredCode(apiKey, promptRefactorCode, selectedText);
             await showDiff(editor, selectedText, refactoredCode);
         }

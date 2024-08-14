@@ -19,8 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     try {
-      const apiKey = getConfig('allyzio.chatgpt.apiKey');
-      const promptRefactorCode = getConfig('allyzio.prompt.refactorCode');
+      const apiKey = getConfig('allyzio.chatgpt.apiKey') || ''; 
+      const promptRefactorCode = getConfig('allyzio.prompt.refactorCode') || '';
       const refactoredCode = await getRefactoredCode(apiKey, promptRefactorCode, selectedText);
 
       await showDiff(editor, selectedText, refactoredCode);
@@ -36,7 +36,7 @@ function getConfig(key: string): string | undefined {
   return vscode.workspace.getConfiguration().get(key);
 }
 
-async function getRefactoredCode(apiKey: string, prompt: string, code: string): Promise<string> {
+async function getRefactoredCode(apiKey: string , prompt: string, code: string): Promise<string> {
   const response = await axios.post(
     'https://api.openai.com/v1/chat/completions',
     {
