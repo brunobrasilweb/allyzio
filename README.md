@@ -4,11 +4,14 @@ Allyzio is your programming best friend, it will help you write better code usin
 
 ## Features
 
-To use it, it's very simple, just select the part of the code you want to improve and click the right mouse button on the "Allyzio: Refactor Code" option and Allyzio will improve that part of your code.
+### Refactor Code
+To use it, it's very simple, just select the part of the code you want to improve and click the right mouse button on the "Allyzio > Refactor Code" option and Allyzio will improve that part of your code.
 
 
 ![\!\\[feature X\\]\(images/feature-x.png\)](https://ik.imagekit.io/prezaty/Anima%C3%A7%C3%A3o_pJqZuXENd.gif?updatedAt=1723635633686)
 
+### Refactor Code
+You can add comments to your code smarter and faster. Click the right mouse button on "Allyzio > Comment Code" and the artificial intelligence will comment on your code.
 
 ## Requirements
 
@@ -24,4 +27,9 @@ To configure you need to enter the OpenAI API KEY and if you want to change the 
 
 ### 0.0.1
 
-Initial version with the option to refactor your code
+- Initial version with the option to refactor your code
+
+### 0.1.0
+
+- change menu
+- add option comment code

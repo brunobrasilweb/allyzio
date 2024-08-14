@@ -2,62 +2,98 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('allyzio.refactorCode', async () => {
-    const editor = vscode.window.activeTextEditor;
+    const commentCode = vscode.commands.registerCommand('allyzio.commentCode', async () => {
+        const editor = vscode.window.activeTextEditor;
 
-    if (!editor) {
-      vscode.window.showInformationMessage('No active editor found.');
-      return;
-    }
+        if (!editor) {
+            vscode.window.showInformationMessage('No active editor found.');
+            return;
+        }
 
+        const selectedText = getSelectedText(editor);
+
+        if (!selectedText) {
+            vscode.window.showInformationMessage('No code selected.');
+            return;
+        }
+
+        try {
+            const language = vscode.env.language;
+            const prompt = `You are a software engineering expert. Make comments in the code with language ${language} in a simple and explanatory way of how the code works. Dont remove any code. I want you to only return the code with the comment without markdown code (MD):`;
+            const returnCode = await callChatOpenAi(prompt, selectedText);
+
+            await showDiff(editor, selectedText, returnCode);
+        } catch (error) {
+            vscode.window.showErrorMessage('Error refactoring code');
+        }
+    });
+
+    const refactorCode = vscode.commands.registerCommand('allyzio.refactorCode', async () => {
+        const editor = vscode.window.activeTextEditor;
+
+        if (!editor) {
+            vscode.window.showInformationMessage('No active editor found.');
+            return;
+        }
+
+        const selectedText = getSelectedText(editor);
+
+        if (!selectedText) {
+            vscode.window.showInformationMessage('No code selected.');
+            return;
+        }
+
+        try {
+            const promptRefactorCode = `You are a software engineering expert. ${getConfig('allyzio.chatgpt.apiKey')}. Only return the code without markdown code (MD) to be replaced.`;
+            const returnCode = await callChatOpenAi(promptRefactorCode, selectedText);
+
+            await showDiff(editor, selectedText, returnCode);
+        } catch (error) {
+            vscode.window.showErrorMessage('Error refactoring code');
+        }
+    });
+
+    context.subscriptions.push(refactorCode);
+    context.subscriptions.push(commentCode);
+}
+
+function getSelectedText(editor: vscode.TextEditor) {
     const selection = editor.selection;
-    const selectedText = editor.document.getText(selection).trim();
-
-    if (!selectedText) {
-      vscode.window.showInformationMessage('No code selected.');
-      return;
-    }
-
-    try {
-      const apiKey = getConfig('allyzio.chatgpt.apiKey') || ''; 
-      const promptRefactorCode = getConfig('allyzio.prompt.refactorCode') || '';
-      const refactoredCode = await getRefactoredCode(apiKey, promptRefactorCode, selectedText);
-
-      await showDiff(editor, selectedText, refactoredCode);
-    } catch (error) {
-      vscode.window.showErrorMessage(`Error refactoring code`);
-    }
-  });
-
-  context.subscriptions.push(disposable);
+    return editor.document.getText(selection).trim();
 }
 
 function getConfig(key: string): string | undefined {
   return vscode.workspace.getConfiguration().get(key);
 }
 
-async function getRefactoredCode(apiKey: string , prompt: string, code: string): Promise<string> {
-  const response = await axios.post(
-    'https://api.openai.com/v1/chat/completions',
-    {
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a software engineering expert. ${prompt} and only return the code without code MD to be replaced.`,
-        },
-        {
-          role: 'user',
-          content: code,
-        },
-      ],
+function openAiHeaders() {
+  return {
+    headers: {
+      Authorization: `Bearer ${getConfig('allyzio.chatgpt.apiKey')}`,
+      'Content-Type': 'application/json',
     },
-    {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+  };
+}
+
+function openAiPayload(prompt: string, code: string) {
+  return {
+    model: 'gpt-3.5-turbo',
+    messages: [
+      {
+        role: 'system',
+        content: prompt,
       },
-    }
+      {
+        role: 'user',
+        content: code,
+      },
+    ],
+  };
+}
+
+async function callChatOpenAi(prompt: string, code: string): Promise<string> {
+  const response = await axios.post(
+    'https://api.openai.com/v1/chat/completions', openAiPayload(prompt, code), openAiHeaders()
   );
 
   return response.data.choices[0].message.content.trim();

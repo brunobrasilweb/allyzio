@@ -1,9 +1,9 @@
 {
   "name": "allyzio",
-  "displayName": "Allyzio Copilot",
+  "displayName": "Allyzio AI Copilot",
   "description": "AI Copilot for VSCode",
   "icon": "resources/allyzio.png",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.92.0"
   },
@@ -44,7 +44,11 @@
     "commands": [
       {
         "command": "allyzio.refactorCode",
-        "title": "Allyzio: Refactor Code"
+        "title": "Refactor Code"
+      },
+      {
+        "command": "allyzio.commentCode",
+        "title": "Comment Code"
       }
     ],
     "keybindings": [
@@ -53,14 +57,33 @@
         "key": "alt+shift+1",
         "mac": "cmd+shift+1",
         "when": "editorHasSelection"
+      },
+      {
+        "command": "allyzio.commentCode",
+        "key": "alt+shift+2",
+        "mac": "cmd+shift+2",
+        "when": "editorHasSelection"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "allyzio.submenus",
+        "label": "Allyzio"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "command": "allyzio.refactorCode",
-          "when": "editorHasSelection",
-          "group": "allyzio@1"
+          "submenu": "allyzio.submenus",
+          "group": "allyzio"
+        }
+      ],
+      "allyzio.submenus": [
+        {
+          "command": "allyzio.refactorCode"
+        },
+        {
+          "command": "allyzio.commentCode"
         }
       ]
     },
