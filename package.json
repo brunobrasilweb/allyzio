@@ -3,7 +3,7 @@
   "displayName": "Allyzio Copilot",
   "description": "AI-powered Coding Assistant",
   "icon": "resources/allyzio.png",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engines": {
     "vscode": "^1.92.0"
   },
@@ -53,6 +53,10 @@
       {
         "command": "allyzio.testUnitCode",
         "title": "Generate Test Unit"
+      },
+      {
+        "command": "allyzio.explainCode",
+        "title": "Explain Code"
       }
     ],
     "keybindings": [
@@ -72,6 +76,12 @@
         "command": "allyzio.testUnitCode",
         "key": "alt+shift+3",
         "mac": "cmd+shift+3",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "allyzio.explainCode",
+        "key": "alt+shift+4",
+        "mac": "cmd+shift+4",
         "when": "editorHasSelection"
       }
     ],
@@ -97,6 +107,9 @@
         },
         {
           "command": "allyzio.testUnitCode"
+        },
+        {
+          "command": "allyzio.explainCode"
         }
       ]
     },
@@ -121,6 +134,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
     "@types/vscode": "^1.92.0",
@@ -133,6 +147,7 @@
   },
   "dependencies": {
     "allyzio": "file:",
-    "axios": "^1.7.3"
+    "axios": "^1.7.3",
+    "markdown-it": "^14.1.0"
   }
 }

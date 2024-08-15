@@ -1,4 +1,4 @@
-# allyzio README
+# allyzio Copilot
 
 Allyzio is your best programming friend, it will help you write better code using best programming practices, design patterns, using SOLID. It helps you develop faster and with clean code.
 
@@ -20,6 +20,11 @@ You can generate unit test code for various scenarios from the selected code. To
 
 ![\!\\[Generate Test Unit\\]\(images/generate-test-unit.gif\)](https://ik.imagekit.io/prezaty/generate-test-unit_py-aG2g_j.gif?updatedAt=1723747027283)
 
+### Explain Code
+If you are unable to understand how a section of code works, you can select the code and right-click on "Allyzio Copilot > Explain Code" and the artificial intelligence will provide a detailed explanation of the code.
+
+![\!\\[Explain Code\\]\(images/explain-code.gif\)](https://ik.imagekit.io/prezaty/explain-code_w6Jk2xLqI.gif?updatedAt=1723758862138)
+
 
 ## Requirements
 
@@ -32,6 +37,10 @@ To configure you need to enter the OpenAI API KEY
 ![\!\\[Congih\\]\(images/config.gif\)](https://ik.imagekit.io/prezaty/config_gK8Lc7esx.gif?updatedAt=1723747026804)
 
 ## Release Notes
+
+### 0.3.0
+
+- new option: explain code
 
 ### 0.2.0
 

@@ -1,7 +1,45 @@
 import * as vscode from "vscode";
 import axios from "axios";
+import markdownIt from 'markdown-it';
 
 export function activate(context: vscode.ExtensionContext) {
+  const explainCode = vscode.commands.registerCommand(
+    "allyzio.explainCode",
+    async () => {
+      const editor = vscode.window.activeTextEditor;
+      const markdownItParser = markdownIt();
+
+      if (!editor) {
+        vscode.window.showInformationMessage("No active editor found.");
+        return;
+      }
+
+      const selectedText = getSelectedText(editor);
+
+      if (!selectedText) {
+        vscode.window.showInformationMessage("No code selected.");
+        return;
+      }
+
+      try {
+        const prompt = `
+              You are a software engineering expert. You will briefly explain how the code works following these rules:
+
+              Rules:
+              - lang ${vscode.env.language}
+              - Start with a description of how the code works
+              - Talk only about the code
+              - You can add comments to the code to make it easier to understand
+            `;
+        const returnCode = await callChatOpenAi(prompt, selectedText);
+
+        showMarkdownInWebview(returnCode, context.extensionUri, markdownItParser);
+      } catch (error) {
+        vscode.window.showErrorMessage("Error refactoring code");
+      }
+    }
+  );
+
   const testUnitCode = vscode.commands.registerCommand(
     "allyzio.testUnitCode",
     async () => {
@@ -28,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
               - do the complete unit test code and not just the comment
               - Generate all possible test scenarios for the code
               - Do not set up the application
-              - Do not return code in Markdown (MD) format.
+              - Do not return code in Markdown format.
             `;
         const returnCode = await callChatOpenAi(prompt, selectedText);
 
@@ -57,9 +95,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       try {
-        const language = vscode.env.language;
         const prompt = `
-              You are a software engineering expert, provide comments explaining the code in a simple way in lang ${language}. Return only the code with the comments without using markdown MD.
+              You are a software engineering expert, provide comments explaining the code in a simple way in lang ${vscode.env.language}. Return only the code with the comments without using markdown.
 
               What you should not do in the code:
               - alter the code structure
@@ -104,7 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
               - Do not suggest changes to variables, methods, or classes if they are correctly named.
               - Do not comment on the code.
               - Do not import libraries.
-              - Do not return code in Markdown (MD) format.
+              - Do not return code in Markdown format.
             `;
         const returnCode = await callChatOpenAi(
           promptRefactorCode,
@@ -118,10 +155,15 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(refactorCode, commentCode, testUnitCode);
+  context.subscriptions.push(
+    refactorCode,
+    commentCode,
+    testUnitCode,
+    explainCode
+  );
 }
 
-function getSelectedText(editor: vscode.TextEditor) {
+function getSelectedText(editor: vscode.TextEditor): string {
   const selection = editor.selection;
   return editor.document.getText(selection).trim();
 }
@@ -130,7 +172,7 @@ function getConfig(key: string): string | undefined {
   return vscode.workspace.getConfiguration().get(key);
 }
 
-function openAiHeaders() {
+function openAiHeaders(): any {
   return {
     headers: {
       Authorization: `Bearer ${getConfig("allyzio.chatgpt.apiKey")}`,
@@ -139,8 +181,8 @@ function openAiHeaders() {
   };
 }
 
-function openAiPayload(prompt: string, code: string) {
-  const payload = {
+function openAiPayload(prompt: string, code: string): any {
+  return {
     model: "gpt-3.5-turbo",
     messages: [
       {
@@ -153,8 +195,6 @@ function openAiPayload(prompt: string, code: string) {
       },
     ],
   };
-
-  return payload;
 }
 
 async function callChatOpenAi(prompt: string, code: string): Promise<string> {
@@ -190,4 +230,34 @@ async function generateCode(editor: vscode.TextEditor, code: string) {
     content: code,
     language: editor.document.languageId,
   });
+}
+
+function showMarkdownInWebview(content: string, extensionUri: vscode.Uri, markdownIt: markdownIt) {
+  const panel = vscode.window.createWebviewPanel(
+    'markdownPreview',
+    'Allyzio Copilot',
+    vscode.ViewColumn.Beside,
+    {
+      enableScripts: true,
+    }
+  );
+
+  panel.webview.html = getHtmlForWebview(content, markdownIt);
+}
+
+function getHtmlForWebview(content: string, markdownIt: markdownIt): string {
+  const htmlContent = markdownIt.render(content || "Select some Markdown text to display here.");
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Allyzio Copilot</title>
+    </head>
+    <body>
+      ${htmlContent}
+    </body>
+    </html>`;
 }
