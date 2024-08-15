@@ -1,2 +1,8 @@
-.vscode/**
-node_modules/**
+out
+dist
+node_modules
+package-lock.json
+.vscode-test/
+*.vsix
+.DS_Store
+!node_modules/chatgpt/build/index.js

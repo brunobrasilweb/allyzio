@@ -19,7 +19,13 @@ export function activate(context: vscode.ExtensionContext) {
 
         try {
             const language = vscode.env.language;
-            const prompt = `You are a software engineering expert. Make comments in the code with language ${language} in a simple and explanatory way of how the code works. Dont remove any code. I want you to only return the code with the comment without markdown code (MD):`;
+            const prompt = `
+              You are a software engineering expert, provide comments explaining the code in a simple way in lang ${language}. Return only the code with the comments without using markdown MD.
+
+              What you should not do in the code:
+              - alter the code structure
+              - remove any code
+            `;
             const returnCode = await callChatOpenAi(prompt, selectedText);
 
             await showDiff(editor, selectedText, returnCode);
@@ -44,7 +50,20 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         try {
-            const promptRefactorCode = `You are a software engineering expert. ${getConfig('allyzio.chatgpt.apiKey')}. Only return the code without markdown code (MD) to be replaced.`;
+            const promptRefactorCode = `
+              You are a software engineering expert and will be making improvements by expanding the following rules of what to do and what not to do in these improvements:
+
+              Rules:
+              - Return only the refactored code.
+              - Apply the best practices of the programming language.
+              - Apply design patterns concepts if applicable.
+              - Apply SOLID principles if applicable.
+              - If using Java, utilize the new features and versions, e.g., streams, etc.
+              - Do not suggest changes to variables, methods, or classes if they are correctly named.
+              - Do not comment on the code.
+              - Do not import libraries.
+              - Do not return code in Markdown (MD) format.
+            `;
             const returnCode = await callChatOpenAi(promptRefactorCode, selectedText);
 
             await showDiff(editor, selectedText, returnCode);
@@ -53,8 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    context.subscriptions.push(refactorCode);
-    context.subscriptions.push(commentCode);
+    context.subscriptions.push(refactorCode, commentCode);
 }
 
 function getSelectedText(editor: vscode.TextEditor) {
@@ -76,7 +94,7 @@ function openAiHeaders() {
 }
 
 function openAiPayload(prompt: string, code: string) {
-  return {
+  const payload = {
     model: 'gpt-3.5-turbo',
     messages: [
       {
@@ -89,6 +107,8 @@ function openAiPayload(prompt: string, code: string) {
       },
     ],
   };
+
+  return payload;
 }
 
 async function callChatOpenAi(prompt: string, code: string): Promise<string> {
@@ -96,7 +116,7 @@ async function callChatOpenAi(prompt: string, code: string): Promise<string> {
     'https://api.openai.com/v1/chat/completions', openAiPayload(prompt, code), openAiHeaders()
   );
 
-  return response.data.choices[0].message.content.trim();
+  return response.data.choices[0].message.content;
 }
 
 async function showDiff(editor: vscode.TextEditor, originalCode: string, refactoredCode: string) {

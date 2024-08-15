@@ -3,7 +3,7 @@
   "displayName": "Allyzio AI Copilot",
   "description": "AI Copilot for VSCode",
   "icon": "resources/allyzio.png",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.92.0"
   },
@@ -95,24 +95,17 @@
           "default": "",
           "description": "OpenAI API key. https://beta.openai.com/account/api-keys",
           "order": 1
-        },
-        "allyzio.prompt.refactorCode": {
-          "type": "string",
-          "default": "Improve the code below using best practices and clean code",
-          "description": "Prompt for Refactor Code",
-          "order": 1
         }
       }
     }
   },
   "scripts": {
-    "compile": "npm run check-types && node esbuild.js",
-    "check-types": "tsc --noEmit",
-    "watch": "npm-run-all -p watch:*",
-    "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "vscode:prepublish": "npm run package",
-    "package": "npm run check-types && node esbuild.js --production"
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
@@ -122,7 +115,6 @@
     "@typescript-eslint/parser": "^7.11.0",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.4.0",
-    "esbuild": "^0.23.0",
     "eslint": "^8.57.0",
     "typescript": "^5.4.5"
   },

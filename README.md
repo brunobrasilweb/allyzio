@@ -10,7 +10,7 @@ To use it, it's very simple, just select the part of the code you want to improv
 
 ![\!\\[feature X\\]\(images/feature-x.png\)](https://ik.imagekit.io/prezaty/Anima%C3%A7%C3%A3o_pJqZuXENd.gif?updatedAt=1723635633686)
 
-### Refactor Code
+### Comment Code
 You can add comments to your code smarter and faster. Click the right mouse button on "Allyzio > Comment Code" and the artificial intelligence will comment on your code.
 
 ## Requirements
@@ -25,11 +25,20 @@ To configure you need to enter the OpenAI API KEY and if you want to change the 
 
 ## Release Notes
 
-### 0.0.1
+### 0.1.2
 
-- Initial version with the option to refactor your code
+- bugfix: don't show result 
+
+### 0.1.1
+
+- remove prompt refactor code. It was generating bugs
+- bugfix: refactor code
 
 ### 0.1.0
 
 - change menu
 - add option comment code
+
+### 0.0.1
+
+- Initial version with the option to refactor your code
