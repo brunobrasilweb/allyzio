@@ -1,56 +1,98 @@
-import * as vscode from 'vscode';
-import axios from 'axios';
+import * as vscode from "vscode";
+import axios from "axios";
 
 export function activate(context: vscode.ExtensionContext) {
-    const commentCode = vscode.commands.registerCommand('allyzio.commentCode', async () => {
-        const editor = vscode.window.activeTextEditor;
+  const testUnitCode = vscode.commands.registerCommand(
+    "allyzio.testUnitCode",
+    async () => {
+      const editor = vscode.window.activeTextEditor;
 
-        if (!editor) {
-            vscode.window.showInformationMessage('No active editor found.');
-            return;
-        }
+      if (!editor) {
+        vscode.window.showInformationMessage("No active editor found.");
+        return;
+      }
 
-        const selectedText = getSelectedText(editor);
+      const selectedText = getSelectedText(editor);
 
-        if (!selectedText) {
-            vscode.window.showInformationMessage('No code selected.');
-            return;
-        }
+      if (!selectedText) {
+        vscode.window.showInformationMessage("No code selected.");
+        return;
+      }
 
-        try {
-            const language = vscode.env.language;
-            const prompt = `
+      try {
+        const prompt = `
+              You are a software engineering expert. You will write unit tests for the code with the following rules:
+
+              Rules:
+              - Only return the unit test code
+              - do the complete unit test code and not just the comment
+              - Generate all possible test scenarios for the code
+              - Do not set up the application
+              - Do not return code in Markdown (MD) format.
+            `;
+        const returnCode = await callChatOpenAi(prompt, selectedText);
+
+        await generateCode(editor, returnCode);
+      } catch (error) {
+        vscode.window.showErrorMessage("Error refactoring code");
+      }
+    }
+  );
+
+  const commentCode = vscode.commands.registerCommand(
+    "allyzio.commentCode",
+    async () => {
+      const editor = vscode.window.activeTextEditor;
+
+      if (!editor) {
+        vscode.window.showInformationMessage("No active editor found.");
+        return;
+      }
+
+      const selectedText = getSelectedText(editor);
+
+      if (!selectedText) {
+        vscode.window.showInformationMessage("No code selected.");
+        return;
+      }
+
+      try {
+        const language = vscode.env.language;
+        const prompt = `
               You are a software engineering expert, provide comments explaining the code in a simple way in lang ${language}. Return only the code with the comments without using markdown MD.
 
               What you should not do in the code:
               - alter the code structure
               - remove any code
             `;
-            const returnCode = await callChatOpenAi(prompt, selectedText);
+        const returnCode = await callChatOpenAi(prompt, selectedText);
 
-            await showDiff(editor, selectedText, returnCode);
-        } catch (error) {
-            vscode.window.showErrorMessage('Error refactoring code');
-        }
-    });
+        await showDiff(editor, selectedText, returnCode);
+      } catch (error) {
+        vscode.window.showErrorMessage("Error refactoring code");
+      }
+    }
+  );
 
-    const refactorCode = vscode.commands.registerCommand('allyzio.refactorCode', async () => {
-        const editor = vscode.window.activeTextEditor;
+  const refactorCode = vscode.commands.registerCommand(
+    "allyzio.refactorCode",
+    async () => {
+      const editor = vscode.window.activeTextEditor;
 
-        if (!editor) {
-            vscode.window.showInformationMessage('No active editor found.');
-            return;
-        }
+      if (!editor) {
+        vscode.window.showInformationMessage("No active editor found.");
+        return;
+      }
 
-        const selectedText = getSelectedText(editor);
+      const selectedText = getSelectedText(editor);
 
-        if (!selectedText) {
-            vscode.window.showInformationMessage('No code selected.');
-            return;
-        }
+      if (!selectedText) {
+        vscode.window.showInformationMessage("No code selected.");
+        return;
+      }
 
-        try {
-            const promptRefactorCode = `
+      try {
+        const promptRefactorCode = `
               You are a software engineering expert and will be making improvements by expanding the following rules of what to do and what not to do in these improvements:
 
               Rules:
@@ -64,20 +106,24 @@ export function activate(context: vscode.ExtensionContext) {
               - Do not import libraries.
               - Do not return code in Markdown (MD) format.
             `;
-            const returnCode = await callChatOpenAi(promptRefactorCode, selectedText);
+        const returnCode = await callChatOpenAi(
+          promptRefactorCode,
+          selectedText
+        );
 
-            await showDiff(editor, selectedText, returnCode);
-        } catch (error) {
-            vscode.window.showErrorMessage('Error refactoring code');
-        }
-    });
+        await showDiff(editor, selectedText, returnCode);
+      } catch (error) {
+        vscode.window.showErrorMessage("Error refactoring code");
+      }
+    }
+  );
 
-    context.subscriptions.push(refactorCode, commentCode);
+  context.subscriptions.push(refactorCode, commentCode, testUnitCode);
 }
 
 function getSelectedText(editor: vscode.TextEditor) {
-    const selection = editor.selection;
-    return editor.document.getText(selection).trim();
+  const selection = editor.selection;
+  return editor.document.getText(selection).trim();
 }
 
 function getConfig(key: string): string | undefined {
@@ -87,22 +133,22 @@ function getConfig(key: string): string | undefined {
 function openAiHeaders() {
   return {
     headers: {
-      Authorization: `Bearer ${getConfig('allyzio.chatgpt.apiKey')}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getConfig("allyzio.chatgpt.apiKey")}`,
+      "Content-Type": "application/json",
     },
   };
 }
 
 function openAiPayload(prompt: string, code: string) {
   const payload = {
-    model: 'gpt-3.5-turbo',
+    model: "gpt-3.5-turbo",
     messages: [
       {
-        role: 'system',
+        role: "system",
         content: prompt,
       },
       {
-        role: 'user',
+        role: "user",
         content: code,
       },
     ],
@@ -113,22 +159,35 @@ function openAiPayload(prompt: string, code: string) {
 
 async function callChatOpenAi(prompt: string, code: string): Promise<string> {
   const response = await axios.post(
-    'https://api.openai.com/v1/chat/completions', openAiPayload(prompt, code), openAiHeaders()
+    "https://api.openai.com/v1/chat/completions",
+    openAiPayload(prompt, code),
+    openAiHeaders()
   );
 
   return response.data.choices[0].message.content;
 }
 
-async function showDiff(editor: vscode.TextEditor, originalCode: string, refactoredCode: string) {
+async function showDiff(
+  editor: vscode.TextEditor,
+  originalCode: string,
+  refactoredCode: string
+) {
   const refactoredDocument = await vscode.workspace.openTextDocument({
     content: editor.document.getText().replace(originalCode, refactoredCode),
     language: editor.document.languageId,
   });
 
   await vscode.commands.executeCommand(
-    'vscode.diff',
+    "vscode.diff",
     refactoredDocument.uri,
     editor.document.uri,
-    'Allyzio: Diff View'
+    "Allyzio: Diff View"
   );
+}
+
+async function generateCode(editor: vscode.TextEditor, code: string) {
+  await vscode.workspace.openTextDocument({
+    content: code,
+    language: editor.document.languageId,
+  });
 }

@@ -1,9 +1,9 @@
 {
   "name": "allyzio",
-  "displayName": "Allyzio AI Copilot",
-  "description": "AI Copilot for VSCode",
+  "displayName": "Allyzio Copilot",
+  "description": "AI-powered Coding Assistant",
   "icon": "resources/allyzio.png",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.92.0"
   },
@@ -49,6 +49,10 @@
       {
         "command": "allyzio.commentCode",
         "title": "Comment Code"
+      },
+      {
+        "command": "allyzio.testUnitCode",
+        "title": "Generate Test Unit"
       }
     ],
     "keybindings": [
@@ -63,12 +67,18 @@
         "key": "alt+shift+2",
         "mac": "cmd+shift+2",
         "when": "editorHasSelection"
+      },
+      {
+        "command": "allyzio.testUnitCode",
+        "key": "alt+shift+3",
+        "mac": "cmd+shift+3",
+        "when": "editorHasSelection"
       }
     ],
     "submenus": [
       {
         "id": "allyzio.submenus",
-        "label": "Allyzio"
+        "label": "Allyzio Copilot"
       }
     ],
     "menus": {
@@ -84,11 +94,14 @@
         },
         {
           "command": "allyzio.commentCode"
+        },
+        {
+          "command": "allyzio.testUnitCode"
         }
       ]
     },
     "configuration": {
-      "title": "Allyzio",
+      "title": "Allyzio Copilot",
       "properties": {
         "allyzio.chatgpt.apiKey": {
           "type": "string",
