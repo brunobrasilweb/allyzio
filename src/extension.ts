@@ -12,9 +12,8 @@ export function activate(context: vscode.ExtensionContext) {
       const editor = vscode.window.activeTextEditor;
       const markdownItParser = markdownIt();
       let counter: number = context.globalState.get('counter') || 0;
-      const tokenValid: boolean = await isTokenValid(context, token);
 
-      if (!tokenValid) {
+      if (!await isTokenValid(context, token)) {
         countRequest(context);
         
         if (counter > 5) {
@@ -62,9 +61,8 @@ export function activate(context: vscode.ExtensionContext) {
       const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       let counter: number = context.globalState.get('counter') || 0;
-      const tokenValid: boolean = await isTokenValid(context, token);
 
-      if (!tokenValid) {
+      if (!await isTokenValid(context, token)) {
         countRequest(context);
         
         if (counter > 5) {
@@ -113,9 +111,8 @@ export function activate(context: vscode.ExtensionContext) {
       const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       let counter: number = context.globalState.get('counter') || 0;
-      const tokenValid: boolean = await isTokenValid(context, token);
 
-      if (!tokenValid) {
+      if (!await isTokenValid(context, token)) {
         countRequest(context);
         
         if (counter > 5) {
@@ -161,9 +158,8 @@ export function activate(context: vscode.ExtensionContext) {
       const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       let counter: number = context.globalState.get('counter') || 0;
-      const tokenValid: boolean = await isTokenValid(context, token);
 
-      if (!tokenValid) {
+      if (!await isTokenValid(context, token)) {
         countRequest(context);
         
         if (counter > 5) {
