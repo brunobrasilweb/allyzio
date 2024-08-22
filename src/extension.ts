@@ -6,8 +6,22 @@ export function activate(context: vscode.ExtensionContext) {
   const explainCode = vscode.commands.registerCommand(
     "allyzio.explainCode",
     async () => {
+      init(context);
+
+      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       const markdownItParser = markdownIt();
+      let counter: number = context.globalState.get('counter') || 0;
+      const tokenValid: boolean = await isTokenValid(context, token);
+
+      if (!tokenValid) {
+        countRequest(context);
+        
+        if (counter > 5) {
+          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
+          return;
+        }
+      }
 
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -43,7 +57,21 @@ export function activate(context: vscode.ExtensionContext) {
   const testUnitCode = vscode.commands.registerCommand(
     "allyzio.testUnitCode",
     async () => {
+      init(context);
+
+      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
+      let counter: number = context.globalState.get('counter') || 0;
+      const tokenValid: boolean = await isTokenValid(context, token);
+
+      if (!tokenValid) {
+        countRequest(context);
+        
+        if (counter > 5) {
+          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
+          return;
+        }
+      }
 
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -80,7 +108,21 @@ export function activate(context: vscode.ExtensionContext) {
   const commentCode = vscode.commands.registerCommand(
     "allyzio.commentCode",
     async () => {
+      init(context);
+
+      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
+      let counter: number = context.globalState.get('counter') || 0;
+      const tokenValid: boolean = await isTokenValid(context, token);
+
+      if (!tokenValid) {
+        countRequest(context);
+        
+        if (counter > 5) {
+          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
+          return;
+        }
+      }
 
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -114,7 +156,21 @@ export function activate(context: vscode.ExtensionContext) {
   const refactorCode = vscode.commands.registerCommand(
     "allyzio.refactorCode",
     async () => {
+      init(context);
+
+      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
+      let counter: number = context.globalState.get('counter') || 0;
+      const tokenValid: boolean = await isTokenValid(context, token);
+
+      if (!tokenValid) {
+        countRequest(context);
+        
+        if (counter > 5) {
+          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
+          return;
+        }
+      }
 
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -163,6 +219,32 @@ export function activate(context: vscode.ExtensionContext) {
   );
 }
 
+function init(context: vscode.ExtensionContext) {
+  if (undefined === context.globalState.get('date')) {
+    context.globalState.update('date', new Date().getDate());  
+  }
+
+  if (undefined === context.globalState.get('counter')) {
+    context.globalState.update('counter', 0);  
+  }
+  
+  if (undefined === context.globalState.get('tokenValid')) {
+    context.globalState.update('tokenValid', false);  
+  }
+}
+
+function countRequest(context: vscode.ExtensionContext) {
+  let date = context.globalState.get('date') || new Date().getDate();
+  let counter: number = context.globalState.get('counter') || 0;
+  
+  if (date == new Date().getDate()) {
+    context.globalState.update('counter', counter+1);  
+  } else {
+    context.globalState.update('counter', 0);  
+    context.globalState.update('date', new Date().getDate());  
+  }
+}
+
 function getSelectedText(editor: vscode.TextEditor): string {
   const selection = editor.selection;
   return editor.document.getText(selection).trim();
@@ -175,7 +257,7 @@ function getConfig(key: string): string | undefined {
 function openAiHeaders(): any {
   return {
     headers: {
-      Authorization: `Bearer ${getConfig("allyzio.chatgpt.apiKey")}`,
+      Authorization: `Bearer sk-rtcqbJmL4SNbjqsChLR2Q8jxOdkrzRH58RunqmcczAT3BlbkFJsCBtdUTMuVIITwB62TgtDrZHJ4AfrNQh1exkOR6Q4A`,
       "Content-Type": "application/json",
     },
   };
@@ -196,6 +278,32 @@ function openAiPayload(prompt: string, code: string): any {
     ],
   };
 }
+
+async function isTokenValid(context: vscode.ExtensionContext, token: string) {
+  let date = context.globalState.get('date') || 0;
+
+  if (date == new Date().getDay()) {
+    return context.globalState.get('tokenValid');
+  }
+  
+  const response = await axios.get(
+    "https://allyzio.com/api/token-access",
+    {
+      headers: {
+        Token: token,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (response.status == 200) {
+    context.globalState.update('tokenValid', true);  
+    return true;
+  }
+  
+  context.globalState.update('tokenValid', false);  
+  return false;
+} 
 
 async function callChatOpenAi(prompt: string, code: string): Promise<string> {
   const response = await axios.post(

@@ -3,7 +3,7 @@
   "displayName": "Allyzio Copilot",
   "description": "AI-powered Coding Assistant",
   "icon": "resources/allyzio.png",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.92.0"
   },
@@ -116,10 +116,10 @@
     "configuration": {
       "title": "Allyzio Copilot",
       "properties": {
-        "allyzio.chatgpt.apiKey": {
+        "allyzio.token": {
           "type": "string",
           "default": "",
-          "description": "OpenAI API key. https://beta.openai.com/account/api-keys",
+          "description": "Get Token Authorization: https://allyzio.com/en/app",
           "order": 1
         }
       }
