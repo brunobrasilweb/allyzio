@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import axios from "axios";
 import markdownIt from 'markdown-it';
+import CryptoJS from 'crypto-js';
 
 export function activate(context: vscode.ExtensionContext) {
   const explainCode = vscode.commands.registerCommand(
@@ -11,15 +12,10 @@ export function activate(context: vscode.ExtensionContext) {
       const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       const markdownItParser = markdownIt();
-      let counter: number = context.globalState.get('counter') || 0;
-
+      
       if (!await isTokenValid(context, token)) {
-        countRequest(context);
-        
-        if (counter > 5) {
-          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
-          return;
-        }
+        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
+        return;
       }
 
       if (!editor) {
@@ -48,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         showMarkdownInWebview(returnCode, context.extensionUri, markdownItParser);
       } catch (error) {
-        vscode.window.showErrorMessage("Error refactoring code");
+        vscode.window.showErrorMessage("Error explain code: " + error);
       }
     }
   );
@@ -60,15 +56,10 @@ export function activate(context: vscode.ExtensionContext) {
 
       const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
-      let counter: number = context.globalState.get('counter') || 0;
-
+      
       if (!await isTokenValid(context, token)) {
-        countRequest(context);
-        
-        if (counter > 5) {
-          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
-          return;
-        }
+        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
+        return;
       }
 
       if (!editor) {
@@ -98,7 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         await generateCode(editor, returnCode);
       } catch (error) {
-        vscode.window.showErrorMessage("Error refactoring code");
+        vscode.window.showErrorMessage("Error test unit code: " + error);
       }
     }
   );
@@ -113,12 +104,8 @@ export function activate(context: vscode.ExtensionContext) {
       let counter: number = context.globalState.get('counter') || 0;
 
       if (!await isTokenValid(context, token)) {
-        countRequest(context);
-        
-        if (counter > 5) {
-          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
-          return;
-        }
+        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
+        return;
       }
 
       if (!editor) {
@@ -135,17 +122,21 @@ export function activate(context: vscode.ExtensionContext) {
 
       try {
         const prompt = `
-              You are a software engineering expert, provide comments explaining the code in a simple way in lang ${vscode.env.language}. Return only the code with the comments without using markdown.
-
+              You are a software engineering expert, provide comments explaining the code in a simple way in lang ${vscode.env.language}
+              
               What you should not do in the code:
+              - dont return markdownalter the code structure
               - alter the code structure
-              - remove any code
+              - Do not remove original code
+              - Do not return code in Markdown format.
+              - do not response only comment
+              - add comment at code sended
             `;
         const returnCode = await callChatOpenAi(prompt, selectedText);
 
         await showDiff(editor, selectedText, returnCode);
       } catch (error) {
-        vscode.window.showErrorMessage("Error refactoring code");
+        vscode.window.showErrorMessage("Error comment code: " + error);
       }
     }
   );
@@ -157,15 +148,10 @@ export function activate(context: vscode.ExtensionContext) {
 
       const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
-      let counter: number = context.globalState.get('counter') || 0;
-
+      
       if (!await isTokenValid(context, token)) {
-        countRequest(context);
-        
-        if (counter > 5) {
-          vscode.window.showInformationMessage("You've reached the limit of 5 requests per day. Upgrade here: https://allyzio.com");
-          return;
-        }
+        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
+        return;
       }
 
       if (!editor) {
@@ -202,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         await showDiff(editor, selectedText, returnCode);
       } catch (error) {
-        vscode.window.showErrorMessage("Error refactoring code");
+        vscode.window.showErrorMessage("Error refactoring code: " + error);
       }
     }
   );
@@ -213,6 +199,19 @@ export function activate(context: vscode.ExtensionContext) {
     testUnitCode,
     explainCode
   );
+}
+
+function decrypt(encrypted: string, secret: string): string {
+  if (secret.length !== 16) {
+      secret = secret.padEnd(16, '0');
+  }
+
+  const key = CryptoJS.enc.Utf8.parse(secret);
+  const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7,
+  });
+  return decrypted.toString(CryptoJS.enc.Utf8);
 }
 
 function init(context: vscode.ExtensionContext) {
@@ -253,7 +252,7 @@ function getConfig(key: string): string | undefined {
 function openAiHeaders(): any {
   return {
     headers: {
-      Authorization: `Bearer sk-rtcqbJmL4SNbjqsChLR2Q8jxOdkrzRH58RunqmcczAT3BlbkFJsCBtdUTMuVIITwB62TgtDrZHJ4AfrNQh1exkOR6Q4A`,
+      Authorization: `Bearer ${getConfig("openai.token") || ''}`,
       "Content-Type": "application/json",
     },
   };
@@ -276,29 +275,25 @@ function openAiPayload(prompt: string, code: string): any {
 }
 
 async function isTokenValid(context: vscode.ExtensionContext, token: string) {
-  let date = context.globalState.get('date') || 0;
+  try {
+    if (token == "") {
+      return false;
+    }  
+      
+    const secret = "VG+XvB+hNmOc=!5T";
+    const parts = token.split('.');
+    if (parts.length !== 2) return false;
 
-  if (date == new Date().getDay()) {
-    return context.globalState.get('tokenValid');
-  }
-  
-  const response = await axios.get(
-    "https://allyzio.com/api/token-access",
-    {
-      headers: {
-        Token: token,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+    const encryptedDate = parts[1];
+    const decryptedDate = decrypt(encryptedDate, secret);
+    const expiryDate = new Date(decryptedDate);
+    const currentDate = new Date();
 
-  if (response.status == 200) {
-    context.globalState.update('tokenValid', true);  
-    return true;
+    return currentDate <= expiryDate;
+  } catch (error) {
+    console.error('Error validating token:', error);
+    return false;
   }
-  
-  context.globalState.update('tokenValid', false);  
-  return false;
 } 
 
 async function callChatOpenAi(prompt: string, code: string): Promise<string> {
