@@ -3,7 +3,7 @@
   "displayName": "Allyzio Copilot",
   "description": "AI-powered Coding Assistant",
   "icon": "resources/allyzio.png",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "engines": {
     "vscode": "^1.92.0"
   },
@@ -120,11 +120,27 @@
     "configuration": {
       "title": "Allyzio Copilot",
       "properties": {
+        "allyzio.aiProvider": {
+          "type": "string",
+          "enum": [
+            "ChatGPT",
+            "Gemini"
+          ],
+          "default": "ChatGPT",
+          "description": "Choose the AI provider: ChatGPT or Gemini.",
+          "order": 1
+        },
         "openai.token": {
           "type": "string",
           "default": "",
           "description": "Get Token Authorization: https://openai.com/index/openai-api/",
           "order": 1
+        },
+        "gemini.token": {
+          "type": "string",
+          "default": "",
+          "description": "Token for Gemini API: https://aistudio.google.com/",
+          "order": 3
         }
       }
     }

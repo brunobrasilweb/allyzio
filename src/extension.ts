@@ -10,6 +10,12 @@ export function activate(context: vscode.ExtensionContext) {
 
       const editor = vscode.window.activeTextEditor;
       const markdownItParser = markdownIt();
+      const aiProvider = getConfig("allyzio.aiProvider") || '';
+
+      if (!aiProvider) {
+        vscode.window.showInformationMessage("Choose the AI provider: ChatGPT or Gemini.");
+        return;
+      }
       
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -33,7 +39,13 @@ export function activate(context: vscode.ExtensionContext) {
               - Talk only about the code
               - You can add comments to the code to make it easier to understand
             `;
-        const returnCode = await callChatOpenAi(prompt, selectedText);
+
+        let returnCode = "";
+        if (aiProvider == "ChatGPT") {
+          returnCode = await callChatOpenAi(prompt, selectedText);
+        } else {
+          returnCode = await callChatGemini(prompt, selectedText);
+        }   
 
         showMarkdownInWebview(returnCode, context.extensionUri, markdownItParser);
       } catch (error) {
@@ -48,6 +60,12 @@ export function activate(context: vscode.ExtensionContext) {
       init(context);
 
       const editor = vscode.window.activeTextEditor;
+      const aiProvider = getConfig("allyzio.aiProvider") || '';
+
+      if (!aiProvider) {
+        vscode.window.showInformationMessage("Choose the AI provider: ChatGPT or Gemini.");
+        return;
+      }
       
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -72,7 +90,12 @@ export function activate(context: vscode.ExtensionContext) {
               - Do not set up the application
               - Do not return code in Markdown format.
             `;
-        const returnCode = await callChatOpenAi(prompt, selectedText);
+        let returnCode = "";
+        if (aiProvider == "ChatGPT") {
+          returnCode = await callChatOpenAi(prompt, selectedText);
+        } else {
+          returnCode = await callChatGemini(prompt, selectedText);
+        } 
 
         await generateCode(editor, returnCode);
       } catch (error) {
@@ -87,6 +110,12 @@ export function activate(context: vscode.ExtensionContext) {
       init(context);
 
       const editor = vscode.window.activeTextEditor;
+      const aiProvider = getConfig("allyzio.aiProvider") || '';
+
+      if (!aiProvider) {
+        vscode.window.showInformationMessage("Choose the AI provider: ChatGPT or Gemini.");
+        return;
+      }
       
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -105,14 +134,19 @@ export function activate(context: vscode.ExtensionContext) {
               You are a software engineering expert, provide comments explaining the code in a simple way in lang ${vscode.env.language}
               
               What you should not do in the code:
-              - dont return markdownalter the code structure
+              - dont return markdown alter the code structure
               - alter the code structure
               - Do not remove original code
               - Do not return code in Markdown format.
               - do not response only comment
               - add comment at code sended
             `;
-        const returnCode = await callChatOpenAi(prompt, selectedText);
+        let returnCode = "";
+        if (aiProvider == "ChatGPT") {
+          returnCode = await callChatOpenAi(prompt, selectedText);
+        } else {
+          returnCode = await callChatGemini(prompt, selectedText);
+        } 
 
         await showDiff(editor, selectedText, returnCode);
       } catch (error) {
@@ -127,6 +161,12 @@ export function activate(context: vscode.ExtensionContext) {
       init(context);
 
       const editor = vscode.window.activeTextEditor;
+      const aiProvider = getConfig("allyzio.aiProvider") || '';
+
+      if (!aiProvider) {
+        vscode.window.showInformationMessage("Choose the AI provider: ChatGPT or Gemini.");
+        return;
+      }
       
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
@@ -141,7 +181,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       try {
-        const promptRefactorCode = `
+        const prompt = `
               You are a software engineering expert and will be making improvements by expanding the following rules of what to do and what not to do in these improvements:
 
               Rules:
@@ -155,10 +195,13 @@ export function activate(context: vscode.ExtensionContext) {
               - Do not import libraries.
               - Do not return code in Markdown format.
             `;
-        const returnCode = await callChatOpenAi(
-          promptRefactorCode,
-          selectedText
-        );
+
+        let returnCode = "";
+        if (aiProvider == "ChatGPT") {
+          returnCode = await callChatOpenAi(prompt, selectedText);
+        } else {
+          returnCode = await callChatGemini(prompt, selectedText);
+        } 
 
         await showDiff(editor, selectedText, returnCode);
       } catch (error) {
@@ -207,6 +250,14 @@ function openAiHeaders(): any {
   };
 }
 
+function geminiHeaders(): any {
+  return {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+}
+
 function openAiPayload(prompt: string, code: string): any {
   return {
     model: "gpt-3.5-turbo",
@@ -223,6 +274,36 @@ function openAiPayload(prompt: string, code: string): any {
   };
 }
 
+function geminiPayload(prompt: string, code: string): any {
+  return {
+    contents: [
+      {
+        role: "user",
+        parts: [
+          {
+            text: code
+          }
+        ]
+      }
+    ],
+    systemInstruction: {
+      role: "user",
+      parts: [
+        {
+          text: prompt 
+        }
+      ]
+    },
+    generationConfig: {
+      temperature: 1,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+      responseMimeType: "text/plain"
+    }
+  };
+}
+
 async function callChatOpenAi(prompt: string, code: string): Promise<string> {
   try {
     const response = await axios.post(
@@ -231,9 +312,23 @@ async function callChatOpenAi(prompt: string, code: string): Promise<string> {
       openAiHeaders()
     );
 
-    return response.data.choices[0].message.content;
+    return response.data.choices[0].message.content.replace(/^```[a-zA-Z0-9]*\s*|```$/g, '').trim();
   } catch (error) {
     throw new Error("Error calling OpenAI, please check if the token is valid.");
+  }
+}
+
+async function callChatGemini(prompt: string, code: string): Promise<string> {
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${getConfig("gemini.token") || ''}`,
+      geminiPayload(prompt, code),
+      geminiHeaders()
+    );
+
+    return response.data.candidates[0].content.parts[0].text.replace(/^```[a-zA-Z0-9]*\s*|```$/g, '').trim();
+  } catch (error) {
+    throw new Error("Error calling Gemini, please check if the token is valid.");
   }
 }
 

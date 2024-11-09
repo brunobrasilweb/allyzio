@@ -42,7 +42,12 @@ To configure you need to enter the OpenAI API KEY
 
 ## Release Notes
 
-### 1.3.0
+### 1.4.0 - 2024-11-09
+
+- API Gemini
+- Choose the AI provider: ChatGPT or Gemini.
+
+### 1.3.0 - 2024-11-09
 
 - It's free now and open-source
 
