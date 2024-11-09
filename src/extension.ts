@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import axios from "axios";
 import markdownIt from 'markdown-it';
-import CryptoJS from 'crypto-js';
 
 export function activate(context: vscode.ExtensionContext) {
   const explainCode = vscode.commands.registerCommand(
@@ -9,15 +8,9 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       init(context);
 
-      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       const markdownItParser = markdownIt();
       
-      if (!await isTokenValid(context, token)) {
-        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
-        return;
-      }
-
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
         return;
@@ -54,14 +47,8 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       init(context);
 
-      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       
-      if (!await isTokenValid(context, token)) {
-        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
-        return;
-      }
-
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
         return;
@@ -99,15 +86,8 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       init(context);
 
-      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
-      let counter: number = context.globalState.get('counter') || 0;
-
-      if (!await isTokenValid(context, token)) {
-        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
-        return;
-      }
-
+      
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
         return;
@@ -146,14 +126,8 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       init(context);
 
-      const token = getConfig("allyzio.token") || '';
       const editor = vscode.window.activeTextEditor;
       
-      if (!await isTokenValid(context, token)) {
-        vscode.window.showInformationMessage("You've get Token Authorization Allyzio Colipot here: https://allyzio.com");
-        return;
-      }
-
       if (!editor) {
         vscode.window.showInformationMessage("No active editor found.");
         return;
@@ -201,19 +175,6 @@ export function activate(context: vscode.ExtensionContext) {
   );
 }
 
-function decrypt(encrypted: string, secret: string): string {
-  if (secret.length !== 16) {
-      secret = secret.padEnd(16, '0');
-  }
-
-  const key = CryptoJS.enc.Utf8.parse(secret);
-  const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-      mode: CryptoJS.mode.ECB,
-      padding: CryptoJS.pad.Pkcs7,
-  });
-  return decrypted.toString(CryptoJS.enc.Utf8);
-}
-
 function init(context: vscode.ExtensionContext) {
   if (undefined === context.globalState.get('date')) {
     context.globalState.update('date', new Date().getDate());  
@@ -225,18 +186,6 @@ function init(context: vscode.ExtensionContext) {
   
   if (undefined === context.globalState.get('tokenValid')) {
     context.globalState.update('tokenValid', false);  
-  }
-}
-
-function countRequest(context: vscode.ExtensionContext) {
-  let date = context.globalState.get('date') || new Date().getDate();
-  let counter: number = context.globalState.get('counter') || 0;
-  
-  if (date == new Date().getDate()) {
-    context.globalState.update('counter', counter+1);  
-  } else {
-    context.globalState.update('counter', 0);  
-    context.globalState.update('date', new Date().getDate());  
   }
 }
 
@@ -274,36 +223,18 @@ function openAiPayload(prompt: string, code: string): any {
   };
 }
 
-async function isTokenValid(context: vscode.ExtensionContext, token: string) {
-  try {
-    if (token == "") {
-      return false;
-    }  
-      
-    const secret = "VG+XvB+hNmOc=!5T";
-    const parts = token.split('.');
-    if (parts.length !== 2) return false;
-
-    const encryptedDate = parts[1];
-    const decryptedDate = decrypt(encryptedDate, secret);
-    const expiryDate = new Date(decryptedDate);
-    const currentDate = new Date();
-
-    return currentDate <= expiryDate;
-  } catch (error) {
-    console.error('Error validating token:', error);
-    return false;
-  }
-} 
-
 async function callChatOpenAi(prompt: string, code: string): Promise<string> {
-  const response = await axios.post(
-    "https://api.openai.com/v1/chat/completions",
-    openAiPayload(prompt, code),
-    openAiHeaders()
-  );
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      openAiPayload(prompt, code),
+      openAiHeaders()
+    );
 
-  return response.data.choices[0].message.content;
+    return response.data.choices[0].message.content;
+  } catch (error) {
+    throw new Error("Error calling OpenAI, please check if the token is valid.");
+  }
 }
 
 async function showDiff(

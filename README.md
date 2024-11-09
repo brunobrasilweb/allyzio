@@ -38,6 +38,10 @@ To configure you need to enter the OpenAI API KEY
 
 ## Release Notes
 
+### 1.3.0
+
+- It's free now and open-source
+
 ### 0.3.0
 
 - new option: explain code
