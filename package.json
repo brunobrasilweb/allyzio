@@ -8,6 +8,10 @@
     "vscode": "^1.92.0"
   },
   "publisher": "brunobrasilweb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brunobrasilweb/allyzio"
+  },
   "categories": [
     "Programming Languages",
     "Machine Learning",

@@ -2,6 +2,10 @@
 
 Allyzio is your best programming friend, it will help you write better code using best programming practices, design patterns, using SOLID. It helps you develop faster and with clean code.
 
+## Required
+- Node v18.18.0
+- @vscode/vsce v2.32.0
+
 ## Features
 
 ### Refactor Code
